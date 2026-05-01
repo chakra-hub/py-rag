@@ -1,11 +1,12 @@
 import chromadb
 import uuid
+from config import settings
 
 class VectorRepository:
     def __init__(self,):
         self.client = chromadb.CloudClient(
-            api_key='ck-6SnQiEtYypzMRqZMxtGY7xrcnnwk4YckkFiPn6uQyv1D',
-            tenant='6a95ffa1-97bc-49a7-baf9-564d54e10f9d',
+            api_key=settings.chroma_api_key,
+            tenant=settings.chroma_tenant_id,
             database='py-rag'
             )
         self.collection=self.client.get_or_create_collection(

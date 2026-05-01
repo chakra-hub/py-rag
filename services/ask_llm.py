@@ -1,6 +1,6 @@
 from groq import Groq
 from pydantic import BaseModel
-
+from config import settings
 
 # Store conversation history per session
 conversations = {}
@@ -12,7 +12,7 @@ class ChatRequest(BaseModel):
 
 class AskLLM:
     def __init__(self):
-        self.client = Groq(api_key='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')
+        self.client = Groq(api_key=settings.groq_api_key)
 
     async def chat_with_groq(self, session_id: str, question: str, context: str = None):
         """
