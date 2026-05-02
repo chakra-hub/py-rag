@@ -1,9 +1,18 @@
 from fastapi import FastAPI
+from core.create_index import create_index
 from routes import ingest, chat
 import uvicorn
+from contextlib import asynccontextmanager
 
 app = FastAPI()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Runs on startup
+    create_index()
+    print("Redis index created")
+    yield
+    # Runs on shutdown (nothing needed here)
 app.include_router(ingest.router, prefix="/api/v1", tags=['ingest'])
 app.include_router(chat.router, prefix="/api/v1", tags=['chat'])
 
