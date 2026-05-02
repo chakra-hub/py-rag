@@ -25,8 +25,9 @@ class AskLLM:
         # Initialize conversation history if new session
         if session_id not in conversations:
             conversations[session_id] = [
-                {"role": "system", "content": "You are a helpful assistant."}
-            ]
+{"role": "system", "content": """You are a document assistant. Answer questions ONLY using the context provided in each message. 
+If the answer is not found in the context, say "I cannot find this information in the provided document." 
+Do not use your training knowledge to answer. Cite which part of the context supports your answer."""}            ]
         
         # Build the user message with context if provided
         user_message = question
