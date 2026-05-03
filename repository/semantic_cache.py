@@ -22,9 +22,7 @@ class SemanticCacheRepository:
             doc = results.docs[0]
             score = float(doc.score)
             print(score,"*******SCORE********")
-            # For cosine, 0 is identical, so use a low threshold
             if score < 0.2:
-                # answer is a JSON string
                 return json.loads(doc.answer)
         return None
 
@@ -33,7 +31,6 @@ class SemanticCacheRepository:
         key = f"cache:{hashlib.sha256(query.encode()).hexdigest()}"
         answer_str = json.dumps(answer)
 
-        # Store as top-level fields
         redis_client.hset(
             key,
             mapping={
@@ -42,4 +39,4 @@ class SemanticCacheRepository:
                 "answer": answer_str
             }
         )
-        redis_client.expire(key, 600)  # TTL
+        redis_client.expire(key, 600) 

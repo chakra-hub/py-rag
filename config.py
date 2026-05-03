@@ -4,6 +4,9 @@ class Settings(BaseSettings):
     groq_api_key:str
     chroma_api_key:str
     chroma_tenant_id:str
+    langfuse_secret_key: str
+    langfuse_public_key:str
+    langfuse_base_url:str
 
     model_config = SettingsConfigDict(env_file=".env")
 

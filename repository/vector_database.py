@@ -1,28 +1,31 @@
 import chromadb
 import uuid
+
+from langchain_huggingface import HuggingFaceEmbeddings
 from config import settings
+from langchain_chroma import Chroma
+from sentence_transformers import SentenceTransformer
 
 class VectorRepository:
     def __init__(self,):
-        self.client = chromadb.CloudClient(
-            api_key=settings.chroma_api_key,
+        self.model = HuggingFaceEmbeddings(
+            model_name="all-MiniLM-L6-v2"
+        )
+        self.client = Chroma(
+            collection_name='document-source',
+            embedding_function=self.model,
+            chroma_cloud_api_key=settings.chroma_api_key,
             tenant=settings.chroma_tenant_id,
             database='py-rag'
-            )
-        self.collection=self.client.get_or_create_collection(
-            name='document-source',
         )
 
-    def add_document(self, embeddings:list[int], chunks:list[str]):
-        self.collection.add(
-            documents=chunks,
-            embeddings=embeddings,
-            ids=[str(uuid.uuid4()) for _ in chunks],
-    )
-
-
-    def query_text(self, query_embeddings):
-        return self.collection.query(
-            query_embeddings=query_embeddings,
-            n_results=3
+    def add_document(self, documents, ids):
+        self.client.add_documents(
+            documents=documents,
+            ids=ids
         )
+
+    def query_text(self, query_text: str, n_results: int = 3):
+        results = self.client.similarity_search(query_text, k=n_results)
+        documents = [result.page_content for result in results]
+        return documents

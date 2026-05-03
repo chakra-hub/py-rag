@@ -1,57 +1,70 @@
 from groq import Groq
+from langchain_groq import ChatGroq
 from pydantic import BaseModel
 from config import settings
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+from langchain_core.messages import trim_messages
 
-# Store conversation history per session
-conversations = {}
+store = {}
+
+
+def get_session_history(session_id: str):
+    if session_id not in store:
+        store[session_id] = ChatMessageHistory()
+    return store[session_id]
+
 
 class ChatRequest(BaseModel):
     session_id: str
     question: str
     context: str = None
 
+
 class AskLLM:
     def __init__(self):
-        self.client = Groq(api_key=settings.groq_api_key)
+        self.model = ChatGroq(
+            groq_api_key=settings.groq_api_key, model_name="llama-3.3-70b-versatile"
+        )
 
-    async def chat_with_groq(self, session_id: str, question: str, context: str = None):
-        """
-        Chat with Groq, maintaining conversation history per session
-        Args:
-            session_id: Unique identifier for the conversation
-            question: User's question
-            context: Optional context from RAG
-        """
-        # Initialize conversation history if new session
-        if session_id not in conversations:
-            conversations[session_id] = [
-{"role": "system", "content": """You are a document assistant. Answer questions ONLY using the context provided in each message. 
-If the answer is not found in the context, say "I cannot find this information in the provided document." 
-Do not use your training knowledge to answer. Cite which part of the context supports your answer."""}            ]
-        
-        # Build the user message with context if provided
-        user_message = question
-        if context:
-            user_message = f"Context: {context}\n\nQuestion: {question}"
-        
-        # Add user message to history
-        conversations[session_id].append({"role": "user", "content": user_message})
-        
+        self.prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are a document assistant. Answer questions ONLY using the context provided. "
+                    "If the answer is not found in the context, say 'I cannot find this information'. "
+                    "Cite which part of the context supports your answer.",
+                ),
+                MessagesPlaceholder(variable_name="history"),
+                ("human", "Context: {context}\n\nQuestion: {question}"),
+            ]
+        )
+        self.trimmer = trim_messages(
+            max_tokens=4096,             
+            strategy="last",             
+            token_counter=self.model,    
+            include_system=True,         
+            start_on="human",            
+        )
+
+        self.chain = self.prompt | self.trimmer | self.model
+
+        self.with_history = RunnableWithMessageHistory(
+            self.chain,
+            get_session_history,
+            input_messages_key="question",
+            history_messages_key="history",
+        )
+
+    async def chat_with_groq(self, session_id: str, question: str, context: str = ""):
         try:
-            # Send entire conversation history to maintain context
-            chat_completion = self.client.chat.completions.create(
-                messages=conversations[session_id],
-                model="llama-3.3-70b-versatile"
+            response = await self.with_history.ainvoke(
+                {"question": question, "context": context},
+                config={"configurable": {"session_id": session_id}},
             )
-            
-            assistant_reply = chat_completion.choices[0].message.content
-            
-            # Add assistant response to history
-            conversations[session_id].append({"role": "assistant", "content": assistant_reply})
-            
-            return {"response": assistant_reply, "session_id": session_id}
-        
+
+            return {"response": response.content, "session_id": session_id}
+
         except Exception as e:
-            # Remove the last user message if there was an error
-            conversations[session_id].pop()
-            raise Exception(f"LLM error: {str(e)}") 
+            raise Exception(f"LLM error: {str(e)}")

@@ -14,7 +14,7 @@ def create_index():
                 "embedding",
                 "FLAT", {
                     "TYPE": "FLOAT32",
-                    "DIM": 384,  # or 1536 depending on your embedding model
+                    "DIM": 384, 
                     "DISTANCE_METRIC": "COSINE"
                 }
             )

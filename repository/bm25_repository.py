@@ -6,8 +6,7 @@ class BM25Repository:
         self.storage_path = storage_path
         self.chunks = []
         self.bm25 = None
-        self._load()  # Load from disk on startup
-
+        self._load() 
     def _load(self):
         if os.path.exists(self.storage_path):
             with open(self.storage_path, "r") as f:
@@ -26,7 +25,7 @@ class BM25Repository:
     def add_chunks(self, chunks: list[str]):
         self.chunks.extend(chunks)
         self._rebuild_index()
-        self._save()  # Persist to disk — fixes the memory problem
+        self._save()
 
     def query(self, query: str, n_results: int = 3) -> list[str]:
         if not self.bm25 or not self.chunks:

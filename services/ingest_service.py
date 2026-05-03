@@ -1,7 +1,8 @@
 from utils.createChunks import createChunks
-from utils.createEmbeddings import createEmbeddings
 from utils.extractDocsFromRequest import extractDocsFromRequest
 from repository.vector_database import VectorRepository
+from langchain_core.documents import Document
+from uuid import uuid4
 
 class IngestService:
     def __init__(self):
@@ -14,9 +15,20 @@ class IngestService:
         extracted_docs = extractDocsFromRequest(docs)
         doc_text=extracted_docs.document.export_to_markdown()
         chunks=createChunks(doc_text)
-        embeddings=createEmbeddings(chunks)
+        
+        documents = [
+            Document(
+                page_content=chunk,
+                metadata={"source": "uploaded_document"},
+                id=str(uuid4())
+            )
+            for chunk in chunks
+        ]
+        
+        uuids = [str(uuid4()) for _ in documents]
+        
         try:
-            self.vector_db.add_document(embeddings, chunks)
+            self.vector_db.add_document(documents, uuids)
         except Exception as e:
             raise Exception(f'Ingestion failed:{str(e)}')
     
