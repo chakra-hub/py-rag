@@ -14,7 +14,6 @@ class ChatService:
 
     def hybrid_retrieve(self, question: str, question_embedding: list) -> list[str]:
         retrieved_results = self.vector_db.query_text(question)
-        print(retrieved_results,'Results')
         bm25_chunks = self.bm25_db.query(question, n_results=3)
         
         seen = set()
@@ -30,13 +29,11 @@ class ChatService:
             query_embedding = createEmbeddings(question)
             
             cached = self.cache_repo.find_similar(query_embedding)
-            print(cached,'**********CACHED**************')
             if cached:
                 return cached
             
             chunks = self.hybrid_retrieve(question, query_embedding)
             context_text = "\n\n---\n\n".join(chunks)
-            print('**********LLM CALL**************')
             
             answer = await self.ask_llm.chat_with_groq(
                 session_id=session_id,

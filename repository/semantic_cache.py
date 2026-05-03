@@ -16,13 +16,11 @@ class SemanticCacheRepository:
             q,
             query_params={"vec": vector}
         )
-        print(results,"*******DOCS********")
 
         if results.docs:
             doc = results.docs[0]
             score = float(doc.score)
-            print(score,"*******SCORE********")
-            if score < 0.2:
+            if score < 0.1:
                 return json.loads(doc.answer)
         return None
 

@@ -6,6 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_core.messages import trim_messages
+from core.langfuse_client import langfuse_handler
 
 store = {}
 
@@ -61,7 +62,7 @@ class AskLLM:
         try:
             response = await self.with_history.ainvoke(
                 {"question": question, "context": context},
-                config={"configurable": {"session_id": session_id}},
+                config={"configurable": {"session_id": session_id}, "callbacks": [langfuse_handler]},
             )
 
             return {"response": response.content, "session_id": session_id}
