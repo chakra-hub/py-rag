@@ -3,6 +3,8 @@ from core.create_index import create_index
 from routes import ingest, chat
 import uvicorn
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+load_dotenv()
 
 app = FastAPI()
 
@@ -11,7 +13,7 @@ async def lifespan(app: FastAPI):
     create_index()
     print("Redis index created")
     yield
-    
+
 app.include_router(ingest.router, prefix="/api/v1", tags=['ingest'])
 app.include_router(chat.router, prefix="/api/v1", tags=['chat'])
 

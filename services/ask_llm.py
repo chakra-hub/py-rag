@@ -1,20 +1,24 @@
-from groq import Groq
 from langchain_groq import ChatGroq
 from pydantic import BaseModel
 from config import settings
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_core.messages import trim_messages
-from core.langfuse_client import langfuse_handler
 
 store = {}
 
 
+MAX_HISTORY = 5
+
 def get_session_history(session_id: str):
     if session_id not in store:
         store[session_id] = ChatMessageHistory()
-    return store[session_id]
+
+    history = store[session_id]
+
+    history.messages = history.messages[-MAX_HISTORY:]
+
+    return history
 
 
 class ChatRequest(BaseModel):
@@ -31,25 +35,19 @@ class AskLLM:
 
         self.prompt = ChatPromptTemplate.from_messages(
             [
-                (
-                    "system",
-                    "You are a document assistant. Answer questions ONLY using the context provided. "
-                    "If the answer is not found in the context, say 'I cannot find this information'. "
-                    "Cite which part of the context supports your answer.",
-                ),
+                ("system",
+ "You are a document assistant.\n"
+ "Answer ONLY using the provided context.\n"
+ "If the context is irrelevant or does not contain the answer, say:\n"
+ "'I cannot find this information in the provided documents.'\n"
+ "DO NOT use prior knowledge."
+),
                 MessagesPlaceholder(variable_name="history"),
                 ("human", "Context: {context}\n\nQuestion: {question}"),
             ]
         )
-        self.trimmer = trim_messages(
-            max_tokens=4096,             
-            strategy="last",             
-            token_counter=self.model,    
-            include_system=True,         
-            start_on="human",            
-        )
 
-        self.chain = self.prompt | self.trimmer | self.model
+        self.chain = self.prompt | self.model
 
         self.with_history = RunnableWithMessageHistory(
             self.chain,
@@ -58,11 +56,11 @@ class AskLLM:
             history_messages_key="history",
         )
 
-    async def chat_with_groq(self, session_id: str, question: str, context: str = ""):
+    async def chat_with_groq(self, session_id: str, question: str, context: str, callbacks):
         try:
             response = await self.with_history.ainvoke(
                 {"question": question, "context": context},
-                config={"configurable": {"session_id": session_id}, "callbacks": [langfuse_handler]},
+                config={"configurable": {"session_id": session_id},'callbacks':callbacks},
             )
 
             return {"response": response.content, "session_id": session_id}

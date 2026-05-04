@@ -28,11 +28,21 @@ class BM25Repository:
         self._save()
 
     def query(self, query: str, n_results: int = 3) -> list[str]:
+        print(self.bm25 , self.chunks,' chunks')
+
         if not self.bm25 or not self.chunks:
             return []
+
         tokenized_query = query.lower().split()
         scores = self.bm25.get_scores(tokenized_query)
-        top_indices = sorted(range(len(scores)),
-                           key=lambda i: scores[i],
-                           reverse=True)[:n_results]
-        return [self.chunks[i] for i in top_indices]
+
+        scored_chunks = list(zip(self.chunks, scores))
+        print(scored_chunks,'scored chunks')
+        filtered = [
+            chunk for chunk, score in scored_chunks
+            if score > 1.0 
+        ]
+
+        filtered.sort(key=lambda x: scores[self.chunks.index(x)], reverse=True)
+
+        return filtered[:n_results]

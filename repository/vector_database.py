@@ -25,7 +25,13 @@ class VectorRepository:
             ids=ids
         )
 
-    def query_text(self, query_text: str, n_results: int = 3):
-        results = self.client.similarity_search(query_text, k=n_results)
-        documents = [result.page_content for result in results]
-        return documents
+    def query_text(self, query_text: str, n_results: int = 5):
+        results = self.client.similarity_search_with_score(query_text, k=n_results)
+        print(results,'result direct')
+        filtered_documents = [
+            doc.page_content
+            for doc, score in results
+            if score < 1.0  # Lower distance = more similar (was 0.5, too strict)
+        ]
+
+        return filtered_documents

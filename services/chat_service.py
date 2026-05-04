@@ -3,7 +3,10 @@ from repository.vector_database import VectorRepository
 from services.ask_llm import AskLLM
 from utils.createEmbeddings import createEmbeddings
 from repository.semantic_cache import SemanticCacheRepository
-from core.langfuse_client import langfuse_client
+
+from langfuse import observe, propagate_attributes
+from langfuse.langchain import CallbackHandler
+
 
 class ChatService:
     def __init__(self):
@@ -12,35 +15,73 @@ class ChatService:
         self.bm25_db = BM25Repository()
         self.cache_repo = SemanticCacheRepository()
 
-    def hybrid_retrieve(self, question: str, question_embedding: list) -> list[str]:
-        retrieved_results = self.vector_db.query_text(question)
-        bm25_chunks = self.bm25_db.query(question, n_results=3)
-        
-        seen = set()
-        combined = []
-        for chunk in retrieved_results + bm25_chunks:
-            if chunk not in seen:
-                seen.add(chunk)
-                combined.append(chunk)
-        return combined[:5] 
+    @observe(name="hybrid-retrieval")
+    def hybrid_retrieve(self, question: str) -> list[str]:
 
+        vector_results = self.vector_db.query_text(question)
+        print(vector_results,'vector results')
+        bm25_results = self.bm25_db.query(question, n_results=3)
+
+        combined = vector_results.copy()
+
+        # Add BM25 only if needed
+        for chunk in bm25_results:
+            if chunk not in combined:
+                combined.append(chunk)
+
+        return combined[:3]
+
+    @observe(name="cache-lookup")
+    def check_cache(self, embedding):
+        result = self.cache_repo.find_similar(embedding)
+        return {
+            "hit": result is not None,
+            "answer": result
+        }
+
+    @observe(name="rag-pipeline")
     async def retrieve_and_ask_llm(self, session_id: str, question: str):
-        try:
-            query_embedding = createEmbeddings(question)
-            
-            cached = self.cache_repo.find_similar(query_embedding)
-            if cached:
-                return cached
-            
-            chunks = self.hybrid_retrieve(question, query_embedding)
-            context_text = "\n\n---\n\n".join(chunks)
-            
-            answer = await self.ask_llm.chat_with_groq(
-                session_id=session_id,
-                question=question,
-                context=context_text
-            )
-            self.cache_repo.save(query_embedding, question, answer)
-            return answer
-        except Exception as e:
-            raise Exception(f'Error: {str(e)}')
+
+        with propagate_attributes(
+            trace_name="rag-query",   # 👈 important for naming
+            session_id=session_id,
+            user_id="user-123",
+        ):
+            try:
+                # 🔹 Embedding
+                query_embedding = createEmbeddings(question)
+
+                # 🔹 Cache
+                cache_result = self.check_cache(query_embedding)
+                
+                if cache_result["hit"]:
+                    return cache_result["answer"]
+
+                # 🔹 Retrieval
+                chunks = self.hybrid_retrieve(question)
+
+                if not chunks:
+                    return {
+                        "response": "I cannot find this information in the provided documents.",
+                        "session_id": session_id
+                    }
+
+                context_text = "\n\n---\n\n".join([c[:300] for c in chunks])
+
+                # 🔹 LLM (auto tracked)
+                handler = CallbackHandler()
+
+                answer = await self.ask_llm.chat_with_groq(
+                    session_id=session_id,
+                    question=question,
+                    context=context_text,
+                    callbacks=[handler]
+                )
+
+                # 🔹 Save cache
+                self.cache_repo.save(query_embedding, question, answer)
+
+                return answer
+
+            except Exception as e:
+                raise Exception(f"Error: {str(e)}")
