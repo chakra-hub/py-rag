@@ -37,4 +37,4 @@ class SemanticCacheRepository:
                 "answer": answer_str
             }
         )
-        redis_client.expire(key, 3600)  # TTL
+        redis_client.expire(key, 3600) 

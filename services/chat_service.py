@@ -42,7 +42,7 @@ class ChatService:
     async def retrieve_and_ask_llm(self, session_id: str, question: str):
 
         with propagate_attributes(
-            trace_name="rag-query",   # 👈 important for naming
+            trace_name="rag-query", 
             session_id=session_id,
             user_id="user-123",
         ):
