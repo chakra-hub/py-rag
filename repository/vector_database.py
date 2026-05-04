@@ -31,7 +31,7 @@ class VectorRepository:
         filtered_documents = [
             doc.page_content
             for doc, score in results
-            if score < 1.0  # Lower distance = more similar (was 0.5, too strict)
+            if score < 1.0 
         ]
 
         return filtered_documents

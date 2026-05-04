@@ -24,7 +24,6 @@ class ChatService:
 
         combined = vector_results.copy()
 
-        # Add BM25 only if needed
         for chunk in bm25_results:
             if chunk not in combined:
                 combined.append(chunk)
@@ -48,16 +47,13 @@ class ChatService:
             user_id="user-123",
         ):
             try:
-                # 🔹 Embedding
                 query_embedding = createEmbeddings(question)
 
-                # 🔹 Cache
                 cache_result = self.check_cache(query_embedding)
                 
                 if cache_result["hit"]:
                     return cache_result["answer"]
 
-                # 🔹 Retrieval
                 chunks = self.hybrid_retrieve(question)
 
                 if not chunks:
@@ -68,7 +64,6 @@ class ChatService:
 
                 context_text = "\n\n---\n\n".join([c[:300] for c in chunks])
 
-                # 🔹 LLM (auto tracked)
                 handler = CallbackHandler()
 
                 answer = await self.ask_llm.chat_with_groq(
@@ -78,7 +73,6 @@ class ChatService:
                     callbacks=[handler]
                 )
 
-                # 🔹 Save cache
                 self.cache_repo.save(query_embedding, question, answer)
 
                 return answer
