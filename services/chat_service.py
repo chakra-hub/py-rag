@@ -17,15 +17,13 @@ class ChatService:
 
     @observe(name="hybrid-retrieval")
     def hybrid_retrieve(self, question: str) -> list[str]:
-
-        vector_results = self.vector_db.query_text(question)
-        print(vector_results,'vector results')
-        bm25_results = self.bm25_db.query(question, n_results=3)
-
-        combined = vector_results.copy()
-
-        for chunk in bm25_results:
-            if chunk not in combined:
+        vector_results = self.vector_db.query_text(question)[:2]
+        bm25_results = self.bm25_db.query(question, n_results=2)
+        seen = set()
+        combined = []
+        for chunk in vector_results + bm25_results:
+            if chunk not in seen:
+                seen.add(chunk)
                 combined.append(chunk)
 
         return combined[:3]
@@ -42,7 +40,7 @@ class ChatService:
     async def retrieve_and_ask_llm(self, session_id: str, question: str):
 
         with propagate_attributes(
-            trace_name="rag-query", 
+            trace_name="rag-query",   
             session_id=session_id,
             user_id="user-123",
         ):
@@ -62,7 +60,7 @@ class ChatService:
                         "session_id": session_id
                     }
 
-                context_text = "\n\n---\n\n".join([c[:300] for c in chunks])
+                context_text = "\n\n---\n\n".join(chunks)
 
                 handler = CallbackHandler()
 

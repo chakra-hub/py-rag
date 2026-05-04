@@ -2,11 +2,27 @@ from rank_bm25 import BM25Okapi
 import json, os
 
 class BM25Repository:
-    def __init__(self, storage_path: str = "bm25_store.json"):
-        self.storage_path = storage_path
+    _instance = None
+
+    def __new__(cls, storage_path=None):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self, storage_path: str = None):
+        if self._initialized:
+            return  # Already initialized, skip
+        
+        if storage_path is None:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            storage_path = os.path.join(base_dir, "..", "bm25_store.json")
+        self.storage_path = os.path.abspath(storage_path)
         self.chunks = []
         self.bm25 = None
-        self._load() 
+        self._load()
+        self._initialized = True
+
     def _load(self):
         if os.path.exists(self.storage_path):
             with open(self.storage_path, "r") as f:
@@ -28,21 +44,19 @@ class BM25Repository:
         self._save()
 
     def query(self, query: str, n_results: int = 3) -> list[str]:
-        print(self.bm25 , self.chunks,' chunks')
-
         if not self.bm25 or not self.chunks:
             return []
 
         tokenized_query = query.lower().split()
         scores = self.bm25.get_scores(tokenized_query)
-
+                
+        mean_score = sum(scores) / len(scores)
+        
         scored_chunks = list(zip(self.chunks, scores))
-        print(scored_chunks,'scored chunks')
         filtered = [
-            chunk for chunk, score in scored_chunks
-            if score > 1.0 
+            (chunk, score) for chunk, score in scored_chunks
+            if score > mean_score and score > 0.5
         ]
-
-        filtered.sort(key=lambda x: scores[self.chunks.index(x)], reverse=True)
-
-        return filtered[:n_results]
+                
+        filtered.sort(key=lambda x: x[1], reverse=True)
+        return [chunk for chunk, score in filtered[:n_results]]

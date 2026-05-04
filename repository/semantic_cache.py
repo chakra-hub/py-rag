@@ -8,6 +8,7 @@ class SemanticCacheRepository:
 
     def find_similar(self, embedding):
         vector = np.array(embedding, dtype=np.float32).tobytes()
+        print(embedding, "query vector")
         q = Query(
             "*=>[KNN 1 @embedding $vec AS score]"
         ).sort_by("score").return_fields("answer", "score").dialect(2)
@@ -20,7 +21,7 @@ class SemanticCacheRepository:
         if results.docs:
             doc = results.docs[0]
             score = float(doc.score)
-            if score < 0.2:
+            if score < 0.1:
                 return json.loads(doc.answer)
         return None
 
@@ -37,4 +38,10 @@ class SemanticCacheRepository:
                 "answer": answer_str
             }
         )
-        redis_client.expire(key, 3600) 
+        redis_client.expire(key, 600) 
+
+    def clear_all(self) -> int:
+        keys = redis_client.keys("cache:*")
+        if keys:
+            redis_client.delete(*keys)
+        return len(keys)

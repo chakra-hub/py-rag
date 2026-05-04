@@ -7,7 +7,19 @@ from langchain_chroma import Chroma
 from sentence_transformers import SentenceTransformer
 
 class VectorRepository:
-    def __init__(self,):
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+        # your existing __init__ code here
+        self._initialized = True
         self.model = HuggingFaceEmbeddings(
             model_name="all-MiniLM-L6-v2"
         )
@@ -27,11 +39,13 @@ class VectorRepository:
 
     def query_text(self, query_text: str, n_results: int = 5):
         results = self.client.similarity_search_with_score(query_text, k=n_results)
-        print(results,'result direct')
-        filtered_documents = [
-            doc.page_content
+        
+        filtered = [
+            (doc.page_content, score)
             for doc, score in results
-            if score < 1.0 
+            if score < 1.1
         ]
-
-        return filtered_documents
+        
+        # Sort ascending — lowest score = most similar = best result first
+        filtered.sort(key=lambda x: x[1])
+        return [doc for doc, score in filtered]
