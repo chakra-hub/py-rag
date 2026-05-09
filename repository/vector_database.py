@@ -49,3 +49,10 @@ class VectorRepository:
         # Sort ascending — lowest score = most similar = best result first
         filtered.sort(key=lambda x: x[1])
         return [doc for doc, score in filtered]
+    
+    def query_text_raw(self, query_text: str, n_results: int = 5) -> list[str]:
+        """No score filtering — returns top results regardless of score.
+        Used by agentic RAG where grade_relevance node handles filtering."""
+        results = self.client.similarity_search_with_score(query_text, k=n_results)
+        results.sort(key=lambda x: x[1]) 
+        return [doc.page_content for doc, score in results]

@@ -60,3 +60,17 @@ class BM25Repository:
                 
         filtered.sort(key=lambda x: x[1], reverse=True)
         return [chunk for chunk, score in filtered[:n_results]]
+    
+    def query_raw(self, query: str, n_results: int = 3) -> list[str]:
+        """No score filtering — returns top results regardless of score.
+        Used by agentic RAG where grade_relevance node handles filtering."""
+        if not self.bm25 or not self.chunks:
+            return []
+        
+        tokenized_query = query.lower().split()
+        scores = self.bm25.get_scores(tokenized_query)
+        
+        scored_chunks = list(zip(self.chunks, scores))
+        scored_chunks.sort(key=lambda x: x[1], reverse=True)
+        
+        return [chunk for chunk, score in scored_chunks[:n_results]]
