@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from services.chat_service import ChatService
 from services.agentic_rag import rag_graph
 import uuid
+from fastapi.responses import StreamingResponse
+
 
 router = APIRouter()
 
@@ -38,3 +40,20 @@ async def agentic_chat(request:ChatRequest):
         "final_query": result["query"],
         "attempts": result["rewrite_attempts"]
     }
+
+@router.post('/chat/stream')
+async def stream_chat(request: ChatRequest):
+    session_id = request.session_id or str(uuid.uuid4())
+    
+    return StreamingResponse(
+        chat_service.stream_response(
+            session_id=session_id,
+            question=request.question
+        ),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )

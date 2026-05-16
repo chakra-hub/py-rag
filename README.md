@@ -169,6 +169,7 @@ Unbounded history grows indefinitely, increasing latency and cost with every mes
 | LLM | Groq — Llama 3.3 70B |
 | Agentic Orchestration | LangGraph |
 | Observability | Langfuse |
+| Container | Docker + Docker Compose |
 
 ---
 
@@ -283,6 +284,12 @@ python core/create_index.py
 uvicorn main:app --reload
 ```
 
+**Run with Docker (recommended)**
+docker-compose up --build
+
+**Run locally**
+uvicorn main:app --reload
+
 Visit `http://localhost:8000/docs` for the interactive API.
 
 ---
@@ -338,7 +345,6 @@ py-rag/
 
 - Cross-encoder reranking after hybrid retrieval
 - Streaming responses with Server-Sent Events
-- Docker Compose for one-command setup
 - Persistent conversation history in Redis
 - Per-document metadata filtering for multi-tenant support
 - Load testing and performance benchmarking

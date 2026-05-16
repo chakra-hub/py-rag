@@ -67,3 +67,19 @@ class AskLLM:
 
         except Exception as e:
             raise Exception(f"LLM error: {str(e)}")
+        
+    async def stream_with_groq(self, session_id: str, question: str, context: str):
+        import json
+        
+        full_response = ""
+        
+        async for chunk in self.with_history.astream(
+            {"question": question, "context": context},
+            config={"configurable": {"session_id": session_id}}
+        ):
+            token = chunk.content
+            if token:
+                full_response += token
+                yield f"data: {json.dumps({'token': token, 'done': False})}\n\n"
+        
+        yield f"data: {json.dumps({'token': '', 'done': True, 'session_id': session_id})}\n\n"

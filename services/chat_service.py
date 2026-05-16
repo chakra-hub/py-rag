@@ -3,7 +3,7 @@ from repository.vector_database import VectorRepository
 from services.ask_llm import AskLLM
 from utils.createEmbeddings import createEmbeddings
 from repository.semantic_cache import SemanticCacheRepository
-
+import json
 from langfuse import observe, propagate_attributes
 from langfuse.langchain import CallbackHandler
 
@@ -77,3 +77,40 @@ class ChatService:
 
             except Exception as e:
                 raise Exception(f"Error: {str(e)}")
+            
+
+    async def stream_response(self, session_id: str, question: str):
+        query_embedding = createEmbeddings(question)
+        cached = self.cache_repo.find_similar(query_embedding)
+
+        if cached:
+            answer = cached.get("response", "")
+            for word in answer.split(" "):
+                yield f"data: {json.dumps({'token': word + ' ', 'done': False, 'cached': True})}\n\n"
+            yield f"data: {json.dumps({'token': '', 'done': True, 'session_id': session_id, 'cached': True})}\n\n"
+            return
+
+        chunks = self.hybrid_retrieve(question)
+
+        if not chunks:
+            yield f"data: {json.dumps({'token': 'I cannot find relevant information in the document.', 'done': True, 'session_id': session_id})}\n\n"
+            return
+
+        context_text = "\n\n---\n\n".join(chunks)
+        full_response = ""
+
+        async for chunk in self.ask_llm.stream_with_groq(
+            session_id=session_id,
+            question=question,
+            context=context_text
+        ):
+            if '"done": false' in chunk or '"done":false' in chunk:
+                data = json.loads(chunk.replace("data: ", "").strip())
+                full_response += data.get("token", "")
+            yield chunk
+
+        self.cache_repo.save(
+            query_embedding,
+            question,
+            {"response": full_response, "session_id": session_id}
+        )
