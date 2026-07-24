@@ -14,55 +14,43 @@ ingest_service = IngestService()
 async def ingest(
     file: Annotated[UploadFile | None, File()] = None,
     url: Annotated[str | None, Form()] = None,
+
+    database_name: Annotated[str, Form(...)] = ...,
+    collection_name: Annotated[str, Form(...)] = ...,
+    version: Annotated[str, Form(...)] = ...,
+
     description: Annotated[str | None, Form()] = None,
 ):
-    """
-    Ingest a document from either:
-    - File upload
-    - URL (public webpage / Confluence URL)
-    """
 
-    # Validation
     if file is None and not url:
         raise HTTPException(
             status_code=400,
-            detail="Either a file or a URL must be provided."
+            detail="Either file or url must be provided."
         )
 
     if file is not None and url:
         raise HTTPException(
             status_code=400,
-            detail="Provide either a file or a URL, not both."
+            detail="Provide either file or url, not both."
         )
 
-    try:
-        if file is not None:
+    if file is not None:
 
-            os.makedirs("uploads", exist_ok=True)
+        os.makedirs("uploads", exist_ok=True)
 
-            file_path = f"uploads/{file.filename}"
+        file_path = f"uploads/{file.filename}"
 
-            with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-            source = file_path
-            source_name = file.filename
+        source = file_path
 
-        else:
-            source = url
-            source_name = url
+    else:
+        source = url
 
-        ingest_service.ingest_document(source)
-
-        return {
-            "status": "success",
-            "source": source_name,
-            "description": description,
-            "message": "Document ingested successfully"
-        }
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
+    return ingest_service.ingest_document(
+        uploaded_file=source,
+        database_name=database_name,
+        collection_name=collection_name,
+        version=version,
+    )

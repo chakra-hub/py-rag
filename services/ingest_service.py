@@ -7,7 +7,7 @@ from repository.bm25_repository import BM25Repository
 from repository.vector_database import VectorRepository
 from utils.createChunks import createChunks
 from utils.extractDocsFromRequest import extractDocsFromRequest
-
+from utils.buildMetadata import _build_metadata
 
 chunker = HybridChunker()
 
@@ -53,43 +53,19 @@ class IngestService:
         for index, chunk in enumerate(chunks):
 
             meta = chunk.meta
+            print(chunk.meta)
+            print(type(chunk.meta))
 
-            metadata = {
+            print(vars(chunk.meta))
 
-                # Document metadata
-                "doc_id": document_id,
-                "doc_name": doc_name,
-
-                # Knowledge base metadata
-                "database_name": database_name,
-                "collection_name": collection_name,
-                "version": version,
-
-                # Chunk metadata
-                "chunk_index": index,
-
-                # Structural metadata
-                "page_numbers": (
-                    list(meta.page_numbers)
-                    if getattr(meta, "page_numbers", None)
-                    else []
-                ),
-
-                "headings": (
-                    list(meta.headings)
-                    if getattr(meta, "headings", None)
-                    else []
-                ),
-
-                "captions": (
-                    list(meta.captions)
-                    if getattr(meta, "captions", None)
-                    else []
-                ),
-
-                "source": "docling",
-                "chunker": "HybridChunker",
-            }
+            metadata =_build_metadata(
+            chunk=chunk,
+            document_id=document_id,
+            database_name=database_name,
+            collection_name=collection_name,
+            version=version,
+            chunk_index=index,
+            )
 
             documents.append(
                 Document(
