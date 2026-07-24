@@ -1,5 +1,11 @@
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from transformers import AutoTokenizer
+from docling.chunking import HybridChunker
 
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
-def createChunks(text:str):
-    return text_splitter.split_text(text)
+tokenizer = AutoTokenizer.from_pretrained(
+    "sentence-transformers/all-MiniLM-L6-v2"
+)
+
+chunker = HybridChunker(tokenizer=tokenizer)
+
+def createChunks(doc):
+    return list(chunker.chunk(dl_doc=doc))
