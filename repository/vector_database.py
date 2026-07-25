@@ -45,23 +45,37 @@ class VectorRepository:
         )
 
     def add_documents(
-        self,
-        database_name: str,
-        collection_name: str,
-        version: str,
-        documents,
-        ids
-    ):
+    self,
+    database_name: str,
+    collection_name: str,
+    version: str,
+    documents,
+    ids
+):
         db = self._get_collection(
             database_name,
             collection_name,
             version
         )
 
-        db.add_documents(
-            documents=documents,
-            ids=ids
-        )
+        BATCH_SIZE = 250  # safely below Chroma Cloud's limit
+
+        total = len(documents)
+
+        for start in range(0, total, BATCH_SIZE):
+            end = min(start + BATCH_SIZE, total)
+
+            print(
+                f"Inserting batch {start // BATCH_SIZE + 1} "
+                f"({start}-{end - 1}) of {total}"
+            )
+
+            db.add_documents(
+                documents=documents[start:end],
+                ids=ids[start:end]
+            )
+
+        print(f"Successfully inserted {total} chunks.")
 
     def query_text(
         self,
