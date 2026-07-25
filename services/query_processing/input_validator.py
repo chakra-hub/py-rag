@@ -34,8 +34,3 @@ class InputValidator:
             errors=errors,
         )
     
-validator = InputValidator()
-
-print(validator.validate("Hello"))
-print(validator.validate(""))
-print(validator.validate("aaaaaaaaaaaaaaaaaaaaaa"))
