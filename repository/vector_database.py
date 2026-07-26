@@ -1,5 +1,6 @@
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
+
 from config import settings
 
 
@@ -22,44 +23,21 @@ class VectorRepository:
             model_name="all-MiniLM-L6-v2"
         )
 
-    def _get_collection(
-        self,
-        database_name: str,
-        collection_name: str,
-        version: str
-    ) -> Chroma:
-        """
-        Returns a Chroma collection instance.
+        self.db = Chroma(
+        collection_name=f"{settings.chroma_collection}_{settings.chroma_collection_version}",
+        embedding_function=self.model,
+        chroma_cloud_api_key=settings.chroma_api_key,
+        tenant=settings.chroma_tenant_id,
+        database=settings.chroma_database,
+    )
 
-        Collection naming convention:
-        hr + v1 -> hr_v1
-        engineering + v3 -> engineering_v3
-        """
+    def _get_collection(self):
+        return self.db
 
-        return Chroma(
-            collection_name=f"{collection_name}_{version}",
-            embedding_function=self.model,
-            chroma_cloud_api_key=settings.chroma_api_key,
-            tenant=settings.chroma_tenant_id,
-            database=database_name
-        )
+    def add_documents(self, documents, ids):
+        db = self._get_collection()
 
-    def add_documents(
-    self,
-    database_name: str,
-    collection_name: str,
-    version: str,
-    documents,
-    ids
-):
-        db = self._get_collection(
-            database_name,
-            collection_name,
-            version
-        )
-
-        BATCH_SIZE = 250  # safely below Chroma Cloud's limit
-
+        BATCH_SIZE = 250
         total = len(documents)
 
         for start in range(0, total, BATCH_SIZE):
@@ -72,28 +50,26 @@ class VectorRepository:
 
             db.add_documents(
                 documents=documents[start:end],
-                ids=ids[start:end]
+                ids=ids[start:end],
             )
 
         print(f"Successfully inserted {total} chunks.")
 
     def query_text(
         self,
-        database_name: str,
-        collection_name: str,
-        version: str,
         query_text: str,
-        n_results: int = 5
+        n_results: int = 5,
     ):
-        db = self._get_collection(
-            database_name,
-            collection_name,
-            version
-        )
+        """
+        Returns page contents only.
+        Used by traditional RAG.
+        """
+
+        db = self._get_collection()
 
         results = db.similarity_search_with_score(
-            query_text,
-            k=n_results
+            query=query_text,
+            k=n_results,
         )
 
         filtered = [
@@ -104,79 +80,34 @@ class VectorRepository:
 
         filtered.sort(key=lambda x: x[1])
 
-        return [doc for doc, score in filtered]
+        return [doc for doc, _ in filtered]
 
     def query_text_raw(
         self,
-        database_name: str,
-        collection_name: str,
-        version: str,
         query_text: str,
-        n_results: int = 5
-    ) -> list[str]:
-        """
-        No score filtering.
-        Used by Agentic RAG where the relevance grader decides.
-        """
-
-        db = self._get_collection(
-            database_name,
-            collection_name,
-            version
-        )
-
-        results = db.similarity_search_with_score(
-            query_text,
-            k=n_results
-        )
-
-        results.sort(key=lambda x: x[1])
-
-        return [
-            doc.page_content
-            for doc, score in results
-        ]
-
-    def delete_collection(
-        self,
-        database_name: str,
-        collection_name: str,
-        version: str
+        n_results: int = 50,
     ):
         """
-        Deletes a version if you ever want to remove it.
+        Returns LangChain Document objects.
+        Used by Agentic RAG.
+        No score filtering.
         """
 
-        client = Chroma(
-            collection_name=f"{collection_name}_{version}",
-            embedding_function=self.model,
-            chroma_cloud_api_key=settings.chroma_api_key,
-            tenant=settings.chroma_tenant_id,
-            database=database_name
+        db = self._get_collection()
+
+        results = db.similarity_search_with_score(
+            query=query_text,
+            k=n_results,
         )
 
-        client.delete_collection()
+        return [doc for doc, _ in results]
 
-    def collection_exists(
-        self,
-        database_name: str,
-        collection_name: str,
-        version: str
-    ) -> bool:
-        """
-        Checks whether a version already exists.
-        """
+    def delete_collection(self):
+        self._get_collection().delete_collection()
 
+    def collection_exists(self) -> bool:
         try:
-            db = self._get_collection(
-                database_name,
-                collection_name,
-                version
-            )
-
-            db.get()
-
+            self._get_collection().get()
             return True
-
         except Exception:
             return False

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Any
-from .enums import QueryIntent
+from .enums import QueryIntent, Severity
 
 
 class ValidationResult(BaseModel):
@@ -9,7 +9,9 @@ class ValidationResult(BaseModel):
 
 class GuardrailResult(BaseModel):
     blocked: bool = False
-    reason: str | None  = None
+    rule: str | None = None
+    severity: Severity | None = None
+    reason: str | None = None
     warnings: list[str] = Field(default_factory=list)
 
 class ProcessedQuery(BaseException):
@@ -22,3 +24,9 @@ class ProcessedQuery(BaseException):
     warnings: list[str] = Field(default_factory=dict)
     estimated_tokens: int = 0
     warnings: list[str] = Field(default_factory=list)
+
+class MetadataFilters(BaseModel):
+    collection_name: str | None = None
+    filename: str | None = None
+    headings: list[str] = []
+    page_numbers: list[int] = []

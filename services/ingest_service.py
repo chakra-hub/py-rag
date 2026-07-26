@@ -21,9 +21,6 @@ class IngestService:
     def ingest_document(
         self,
         uploaded_file,
-        database_name: str,
-        collection_name: str,
-        version: str,
     ):
 
         if uploaded_file is None:
@@ -51,19 +48,9 @@ class IngestService:
         documents = []
 
         for index, chunk in enumerate(chunks):
-
-            meta = chunk.meta
-            print(chunk.meta)
-            print(type(chunk.meta))
-
-            print(vars(chunk.meta))
-
             metadata =_build_metadata(
             chunk=chunk,
             document_id=document_id,
-            database_name=database_name,
-            collection_name=collection_name,
-            version=version,
             chunk_index=index,
             )
 
@@ -80,9 +67,6 @@ class IngestService:
 
             # Store in Chroma
             self.vector_db.add_documents(
-                database_name=database_name,
-                collection_name=collection_name,
-                version=version,
                 documents=documents,
                 ids=ids,
             )
@@ -90,17 +74,11 @@ class IngestService:
             # Store in BM25
             # (We'll make this dynamic later as well.)
             self.bm25_db.add_chunks(
-            database_name=database_name,
-            collection_name=collection_name,
-            version=version,
             documents=documents,
         )
 
             return {
                 "status": "success",
-                "database": database_name,
-                "collection": collection_name,
-                "version": version,
                 "documents": len(documents),
             }
 

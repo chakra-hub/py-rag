@@ -1,0 +1,114 @@
+[
+  {
+    "page_content": "CHAKRADHAR PRADHAN\nGen AI Engineer  |  5 + Years  |  Agentic AI & LLM Engineering  |  LWD - 31 July 2026  | Bengaluru |  Immediate Joiner\n+91 9631190035  ·  chkrdhrprdhn@gmail.com  ·  linkedin.com/in/chakradhar-pradhan  ·  github.com/chakra-hub  ·  chakradhar.com",
+    "metadata": {
+      "document_id": "a267157a-6f8e-40ad-9cd9-79509885c4b2",
+      "document_name": "Chakradhar_Pradhan_GenAI_Resume.pdf",
+      "document_type": "unknown",
+      "mime_type": "application/pdf",
+      "document_hash": "17809726095020358150",
+      "page_number": 1,
+      "headings": [
+        "CHAKRADHAR PRADHAN"
+      ],
+      "chunk_index": 0,
+      "indexed_at": "2026-07-26T06:22:34.083770"
+    }
+  },
+  {
+    "page_content": "PROFESSIONAL SUMMARY\nGenAI  /  Agentic  AI  Engineer  with  5+  years  building  production-grade,  large-scale  applications  across  the  full  stack  and  the  AI  layer. Specialized  in LLM  orchestration,  Retrieval-Augmented  Generation  (RAG),  multi-agent  systems,  and  agent  &  tool  orchestration using LangChain,  LangGraph,  LlamaIndex,  CrewAI, AutoGen, and MCP (Model Context Protocol). Strong in prompt engineering & management, conversational  AI,  NLP,  vector  databases,  and  LLM  evaluation,  backed  by  deep  backend  ( Python,  FastAPI,  async )  and  frontend  ( React, TypeScript )  engineering.  Designs  secure,  scalable,  cloud-native  (AWS / Azure) microservices with CI/CD, observability, and responsible-AI practices.",
+    "metadata": {
+      "document_id": "a267157a-6f8e-40ad-9cd9-79509885c4b2",
+      "document_name": "Chakradhar_Pradhan_GenAI_Resume.pdf",
+      "document_type": "unknown",
+      "mime_type": "application/pdf",
+      "document_hash": "17809726095020358150",
+      "page_number": 1,
+      "headings": [
+        "PROFESSIONAL SUMMARY"
+      ],
+      "chunk_index": 1,
+      "indexed_at": "2026-07-26T06:22:34.083937"
+    }
+  },
+  {
+    "page_content": "LiSEC Automation - Remote  |  Senior Software Engineer (GenAI / AI Full-Stack)\nJun 2023 - Present\n- Architected an end-to-end GenAI document-ingestion and RAG pipeline - Docling PDF parsing, recursive chunking, SentenceTransformer embeddings, ChromaDB vector store, and BM25 index for hybrid retrieval - supporting enterprise document ingestion, classification, and retrieval.\n- Built an agentic retrieval system with LangGraph using ReAct and self-reflection control loops: grades chunk relevance with an LLM, rewrites queries, retries, and returns grounded answers with guardrails and approval gates to prevent hallucination; managed short-term (context) and long-term (vector DB) memory & state.\n- Engineered prompt engineering & management workflows and integrated LLM APIs (OpenAI, Groq, AWS Bedrock) with FastAPI async services, semantic caching via Redis (cosine threshold 0.15), and SSE streaming - reducing latency to under 50ms.",
+    "metadata": {
+      "document_id": "a267157a-6f8e-40ad-9cd9-79509885c4b2",
+      "document_name": "Chakradhar_Pradhan_GenAI_Resume.pdf",
+      "document_type": "unknown",
+      "mime_type": "application/pdf",
+      "document_hash": "17809726095020358150",
+      "page_number": 1,
+      "headings": [
+        "LiSEC Automation - Remote  |  Senior Software Engineer (GenAI / AI Full-Stack)"
+      ],
+      "chunk_index": 2,
+      "indexed_at": "2026-07-26T06:22:34.084167"
+    }
+  },
+  {
+    "page_content": "LiSEC Automation - Remote  |  Senior Software Engineer (GenAI / AI Full-Stack)\n- Implemented LLM evaluation and observability - RAGAS (faithfulness, answer relevancy, context precision/recall), Langfuse tracing (latency, token usage, cache hits), and evals / regression testing across multi-agent workflows.\n- Containerized with Docker Compose and shipped production patterns - health checks, environment-based config, CI/CD (Jenkins, GitHub Actions) , NGINX - following responsible-AI, data security, and compliance standards.\n- Led frontend delivery end-to-end ( React, TypeScript, Next.js ) and mentored 3 junior engineers on debugging, API integration, and CI/CD; improved performance & stability ~30-40% via code splitting, lazy loading, memoization, and Core Web Vitals monitoring (Datadog, OpenTelemetry, Lighthouse).\n- Introduced AI-assisted development (GitHub Copilot, Codex) for coding, documentation, and automated test generation - saving ~3 hrs/day and cutting repetitive effort ~20-25% across the team.",
+    "metadata": {
+      "document_id": "a267157a-6f8e-40ad-9cd9-79509885c4b2",
+      "document_name": "Chakradhar_Pradhan_GenAI_Resume.pdf",
+      "document_type": "unknown",
+      "mime_type": "application/pdf",
+      "document_hash": "17809726095020358150",
+      "page_number": 1,
+      "headings": [
+        "LiSEC Automation - Remote  |  Senior Software Engineer (GenAI / AI Full-Stack)"
+      ],
+      "chunk_index": 3,
+      "indexed_at": "2026-07-26T06:22:34.084411"
+    }
+  },
+  {
+    "page_content": "Capgemini, Hyderabad, India  |  Software Engineer\nMar 2021 - Jun 2023\n- Designed and built scalable REST microservices APIs with Node.js , async processing, and SQL / NoSQL data layers (PostgreSQL, MongoDB), improving cross-service data flow ~55%.\n- Implemented scalable state management (Redux Toolkit, TanStack Query) reducing redundant API calls ~40-45%, and built a reusable React + TypeScript component library improving UI consistency ~70% and team efficiency ~40%.\n- Delivered a Network Management System with 50+ reusable components; established automated testing pipelines (Cypress, Playwright) saving ~10+ hrs/week and reducing bugs ~30%.",
+    "metadata": {
+      "document_id": "a267157a-6f8e-40ad-9cd9-79509885c4b2",
+      "document_name": "Chakradhar_Pradhan_GenAI_Resume.pdf",
+      "document_type": "unknown",
+      "mime_type": "application/pdf",
+      "document_hash": "17809726095020358150",
+      "page_number": 1,
+      "headings": [
+        "Capgemini, Hyderabad, India  |  Software Engineer"
+      ],
+      "chunk_index": 4,
+      "indexed_at": "2026-07-26T06:22:34.084639"
+    }
+  },
+  {
+    "page_content": "TECHNICAL SKILLS\nGenAI & LLM: LLMs (GPT, Claude, Gemini, Llama), Prompt Engineering & Management, RAG Pipelines, Agentic AI, Multi-Agent Systems, Agent & Tool Orchestration, Conversational AI, NLP, ReAct / Chain-of-Thought / Self-Reflection, Guardrails, Memory & State Management, Fine-tuning / RLHF, LLM Evaluation (RAGAS, evals, tracing), Knowledge Base Management, Hybrid Retrieval, Semantic Search, Embeddings\nAI Frameworks & Tools: LangChain, LangGraph, LlamaIndex, MCP (Model Context Protocol), A2A, Hugging Face Transformers, LangSmith, Langfuse, OpenAI SDK\nVector Databases: ChromaDB, Pinecone, FAISS\nBackend: Python, FastAPI, Node.js, Express, NestJS, REST / GraphQL / gRPC, Microservices, Async / asyncio, Event-Driven Systems, Domain-Driven Design (DDD), Redis, MongoDB, PostgreSQL, SQL / NoSQL",
+    "metadata": {
+      "document_id": "a267157a-6f8e-40ad-9cd9-79509885c4b2",
+      "document_name": "Chakradhar_Pradhan_GenAI_Resume.pdf",
+      "document_type": "unknown",
+      "mime_type": "application/pdf",
+      "document_hash": "17809726095020358150",
+      "page_number": 1,
+      "headings": [
+        "TECHNICAL SKILLS"
+      ],
+      "chunk_index": 5,
+      "indexed_at": "2026-07-26T06:22:34.084869"
+    }
+  },
+  {
+    "page_content": "TECHNICAL SKILLS\nFrontend: React, TypeScript, Next.js, Redux Toolkit, React Query, Material UI, HTML5, CSS3, Performance Optimization, PWA\nCloud & DevOps: AWS (Bedrock, SageMaker, Lambda, API Gateway), Azure (Azure AI, Azure DevOps), Docker, Kubernetes, CI/CD (GitHub Actions, Jenkins), MLOps, NGINX, Observability (Datadog, OpenTelemetry, Rollbar)\nTesting & Collaboration: Jest, Vitest, Cypress, Playwright, Git, JIRA, Confluence, Agile / Scrum, GitHub Copilot, Figma, Miro",
+    "metadata": {
+      "document_id": "a267157a-6f8e-40ad-9cd9-79509885c4b2",
+      "document_name": "Chakradhar_Pradhan_GenAI_Resume.pdf",
+      "document_type": "unknown",
+      "mime_type": "application/pdf",
+      "document_hash": "17809726095020358150",
+      "page_number": 1,
+      "headings": [
+        "TECHNICAL SKILLS"
+      ],
+      "chunk_index": 6,
+      "indexed_at": "2026-07-26T06:22:34.085038"
+    }
+  }
+]

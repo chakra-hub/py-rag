@@ -14,3 +14,9 @@ class GuardrailType(str, Enum):
     SQL_INJECTION = "sql_injection"
     XSS = "xss"
     ABUSE = "abuse"
+
+class Severity(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"

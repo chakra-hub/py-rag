@@ -9,7 +9,10 @@ class Settings(BaseSettings):
     langfuse_base_url: str
     redis_host: str = "localhost"
     redis_port: int = 6379
-    
+    chroma_database: str = "py-rag"
+    chroma_collection: str = "resume_dubai"
+    chroma_collection_version: str = "v2"
+
     model_config = SettingsConfigDict(env_file=".env")
 
 settings = Settings()

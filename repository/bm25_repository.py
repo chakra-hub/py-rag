@@ -2,7 +2,7 @@ import json
 import os
 import pickle
 import re
-
+from langchain_core.documents import Document
 from rank_bm25 import BM25Okapi
 
 
@@ -27,15 +27,9 @@ class BM25Repository:
 
     def _get_directory(
         self,
-        database_name,
-        collection_name,
-        version,
     ):
         directory = os.path.join(
             self.base_path,
-            database_name,
-            collection_name,
-            version,
         )
 
         os.makedirs(directory, exist_ok=True)
@@ -44,30 +38,19 @@ class BM25Repository:
 
     def _chunks_path(
         self,
-        database_name,
-        collection_name,
-        version,
     ):
         return os.path.join(
             self._get_directory(
-                database_name,
-                collection_name,
-                version,
             ),
             "chunks.json",
         )
 
     def _bm25_path(
         self,
-        database_name,
-        collection_name,
-        version,
+
     ):
         return os.path.join(
             self._get_directory(
-                database_name,
-                collection_name,
-                version,
             ),
             "bm25.pkl",
         )
@@ -78,15 +61,10 @@ class BM25Repository:
 
     def _load_chunks(
         self,
-        database_name,
-        collection_name,
-        version,
+
     ):
 
         path = self._chunks_path(
-            database_name,
-            collection_name,
-            version,
         )
 
         if not os.path.exists(path):
@@ -97,16 +75,10 @@ class BM25Repository:
 
     def _save_chunks(
         self,
-        database_name,
-        collection_name,
-        version,
         chunks,
     ):
 
         path = self._chunks_path(
-            database_name,
-            collection_name,
-            version,
         )
 
         with open(path, "w", encoding="utf-8") as f:
@@ -123,17 +95,11 @@ class BM25Repository:
 
     def _save_bm25(
         self,
-        database_name,
-        collection_name,
-        version,
         bm25,
     ):
 
         with open(
             self._bm25_path(
-                database_name,
-                collection_name,
-                version,
             ),
             "wb",
         ) as f:
@@ -141,15 +107,11 @@ class BM25Repository:
 
     def _load_bm25(
         self,
-        database_name,
-        collection_name,
-        version,
+
     ):
 
         path = self._bm25_path(
-            database_name,
-            collection_name,
-            version,
+
         )
 
         if not os.path.exists(path):
@@ -164,68 +126,57 @@ class BM25Repository:
 
     def add_chunks(
         self,
-        database_name,
-        collection_name,
-        version,
+
         documents,
     ):
 
         chunks = self._load_chunks(
-            database_name,
-            collection_name,
-            version,
+
         )
 
         chunks.extend(
-            [
-                doc.page_content
-                for doc in documents
-            ]
-        )
+    [
+        {
+            "page_content": doc.page_content,
+            "metadata": doc.metadata,
+        }
+        for doc in documents
+    ]
+)
 
         self._save_chunks(
-            database_name,
-            collection_name,
-            version,
+
             chunks,
         )
 
         tokenized_chunks = [
-            self._tokenize(chunk)
-            for chunk in chunks
-        ]
+    self._tokenize(chunk["page_content"])
+    for chunk in chunks
+]
 
         bm25 = BM25Okapi(tokenized_chunks)
 
         self._save_bm25(
-            database_name,
-            collection_name,
-            version,
+
             bm25,
         )
 
     def query(
         self,
-        database_name,
-        collection_name,
-        version,
+
         query,
         n_results=3,
     ):
 
         chunks = self._load_chunks(
-            database_name,
-            collection_name,
-            version,
+
         )
 
         if not chunks:
             return []
 
         bm25 = self._load_bm25(
-            database_name,
-            collection_name,
-            version,
+
         )
 
         if bm25 is None:
@@ -238,7 +189,7 @@ class BM25Repository:
         mean_score = sum(scores) / len(scores)
 
         scored = [
-            (chunk, score)
+            (chunk["page_content"], score)
             for chunk, score in zip(chunks, scores)
             if score > mean_score and score > 0.5
         ]
@@ -255,26 +206,20 @@ class BM25Repository:
 
     def query_raw(
         self,
-        database_name,
-        collection_name,
-        version,
+
         query,
         n_results=3,
     ):
 
         chunks = self._load_chunks(
-            database_name,
-            collection_name,
-            version,
+
         )
 
         if not chunks:
             return []
 
         bm25 = self._load_bm25(
-            database_name,
-            collection_name,
-            version,
+
         )
 
         if bm25 is None:
@@ -292,6 +237,9 @@ class BM25Repository:
         )
 
         return [
-            chunk
-            for chunk, score in scored[:n_results]
-        ]
+    Document(
+        page_content=chunk["page_content"],
+        metadata=chunk["metadata"],
+    )
+    for chunk, score in scored[:n_results]
+]

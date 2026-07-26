@@ -14,11 +14,6 @@ ingest_service = IngestService()
 async def ingest(
     file: Annotated[UploadFile | None, File()] = None,
     url: Annotated[str | None, Form()] = None,
-
-    database_name: Annotated[str, Form(...)] = ...,
-    collection_name: Annotated[str, Form(...)] = ...,
-    version: Annotated[str, Form(...)] = ...,
-
     description: Annotated[str | None, Form()] = None,
 ):
 
@@ -50,7 +45,4 @@ async def ingest(
 
     return ingest_service.ingest_document(
         uploaded_file=source,
-        database_name=database_name,
-        collection_name=collection_name,
-        version=version,
     )
