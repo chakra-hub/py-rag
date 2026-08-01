@@ -2,6 +2,8 @@ from typing import TypedDict
 
 from langchain_core.documents import Document
 from langgraph.graph import END, StateGraph
+from langfuse import observe, propagate_attributes
+from langfuse.langchain import CallbackHandler
 
 from repository.bm25_repository import BM25Repository
 from repository.semantic_cache import SemanticCacheRepository
@@ -26,6 +28,7 @@ class AgentState(TypedDict):
     session_id: str
 
 
+@observe(name="hybrid-retrieval")
 def hybrid_retrieve(state: AgentState) -> AgentState:
     query = state["query"]
 
@@ -63,6 +66,7 @@ def hybrid_retrieve(state: AgentState) -> AgentState:
     return state
 
 
+@observe(name="grade-retrieval")
 def grade_retrieval(state: AgentState) -> AgentState:
 
     if not state["chunks"]:
@@ -86,7 +90,8 @@ Is this context sufficient to answer the question?
 Reply ONLY with YES or NO.
 """
 
-    response = ask_llm.invoke(prompt)
+    handler = CallbackHandler()
+    response = ask_llm.invoke(prompt, callbacks=[handler])
 
     if not response.success:
         state["answer"] = response.error
@@ -100,6 +105,7 @@ Reply ONLY with YES or NO.
     return state
 
 
+@observe(name="agent-call")
 def agent_call(state: AgentState) -> AgentState:
 
     context = "\n\n---\n\n".join(
@@ -120,7 +126,8 @@ Question:
 {state["question"]}
 """
 
-    response = ask_llm.invoke(prompt)
+    handler = CallbackHandler()
+    response = ask_llm.invoke(prompt, callbacks=[handler])
 
     if not response.success:
         state["answer"] = response.error
@@ -131,6 +138,7 @@ Question:
     return state
 
 
+@observe(name="rewrite-query")
 def rewrite_query(state: AgentState) -> AgentState:
 
     prompt = f"""
@@ -143,7 +151,8 @@ Rewrite it to be more specific and likely to find the answer to:
 Return ONLY the rewritten query.
 """
 
-    response = ask_llm.invoke(prompt)
+    handler = CallbackHandler()
+    response = ask_llm.invoke(prompt, callbacks=[handler])
 
     if not response.success:
         state["answer"] = response.error
@@ -210,3 +219,23 @@ def build_rag_graph():
 
 
 rag_graph = build_rag_graph()
+
+
+@observe(name="agentic-rag-pipeline")
+def run_agentic_rag(session_id: str, question: str) -> AgentState:
+    with propagate_attributes(
+        trace_name="agentic-rag-query",
+        session_id=session_id,
+        user_id="user-123",
+    ):
+        return rag_graph.invoke(
+            {
+                "question": question,
+                "query": question,
+                "answer": "",
+                "chunks": [],
+                "is_relevant": False,
+                "rewrite_attempts": 0,
+                "session_id": session_id,
+            }
+        )

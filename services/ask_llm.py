@@ -70,9 +70,12 @@ class AskLLM:
     # Generic synchronous invoke
     # ------------------------------------------------------------------
 
-    def invoke(self, prompt: str) -> LLMResponse:
+    def invoke(self, prompt: str, callbacks=None) -> LLMResponse:
         try:
-            response = self.model.invoke(prompt)
+            response = self.model.invoke(
+                prompt,
+                config={"callbacks": callbacks} if callbacks else None,
+            )
 
             return LLMResponse(
                 success=True,

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from services.chat_service import ChatService
-from services.agentic_rag import rag_graph
+from services.agentic_rag import run_agentic_rag
 import uuid
 from fastapi.responses import StreamingResponse
 
@@ -23,16 +23,10 @@ async def chat(request: ChatRequest):
 @router.post('/chat/agentic')
 async def agentic_chat(request:ChatRequest):
     session_id = request.session_id or str(uuid.uuid4())
-    result = rag_graph.invoke(
-    {
-        "question":request.question,
-        "query":request.question,
-        "answer":"",
-        "chunks":[],
-        "is_relevant":False,
-        "rewrite_attempts":0,
-        "session_id":request.session_id
-    })
+    result = run_agentic_rag(
+        session_id=session_id,
+        question=request.question,
+    )
 
     return {
         "response": result["answer"],
